@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 #use strict;
 use warnings;
@@ -53,7 +53,7 @@ sub run_racon{
     #print OUT "source activate nanopore\n";
     #print OUT "racon --winlen 2000 --ovl-margin 0.5 --reads $fastq_pool --alnpath $mapping --raw $assembly_file --out $racon_out.fa\n";
     #print OUT "$racon_path $fastq_pool $mapping $assembly_file > $out_file\n";
-    print OUT " $racon_dir/racon --winlen $window_size --match $match --mismatch $mismatch --gapopen $gap_open --gapext $gap_extend --reads $read_file --alnpath $mapping --raw $assembly_file --out $out_file\n";
+    print OUT "racon --winlen $window_size --match $match --mismatch $mismatch --gapopen $gap_open --gapext $gap_extend --reads $read_file --alnpath $mapping --raw $assembly_file --out $out_file\n";
     #print OUT "source deactivate\n";
     close(OUT);
     run_exe("sh $out_file.sh > $out_file.out 2> $out_file.err");
@@ -73,7 +73,7 @@ sub run_racon{
 sub get_read_mapping{
     my ($long_read, $assembly, $mapping_file) = @_;
     
-    run_exe("$minimap2_dir/minimap2 --cs=short -w5 -m0 $assembly $long_read > $mapping_file 2> $mapping_file.err");
+    run_exe("minimap2 --cs=short -w5 -m0 $assembly $long_read > $mapping_file 2> $mapping_file.err");
     if($?){
 	die "Error during minimap2. Please see $mapping_file.err for details.\n";
     }

@@ -1,4 +1,4 @@
-#!/usr/bin/perl 
+#!/usr/bin/env perl 
 
 #@authors: M. Senthil Kumar and Denis Bertrand's, Genome Institute of Singapore, 2013., version OperaMS1.0,
 #          Janja Paliska, 						  Genome Institute of Singapore, 2014., version OperaMS2.0
@@ -258,10 +258,10 @@ generate_sigma_config_file($sigma_dir, $contigs_file_type, $contigs_file,
 
 get_read_size($illum_read1, "$sigma_dir/read_size.dat");
 
-my $preprocess_read_path = $bin_dir . "../OPERA-LG/bin/preprocess_reads.pl";
-my $short_analysis_path = $bin_dir . "short-read-analysis";
+my $preprocess_read_path = "preprocess_reads.pl";
+my $short_analysis_path = "short-read-analysis";
 
-run_exe("$utils_dir/perl $preprocess_read_path --out $sigma_dir/short_read_analysis --tool-dir $utils_dir --nproc $nproc --contig $contigs_file --illumina-read1 $illum_read1 --illumina-read2 $illum_read2 --sigma-conf $sigma_dir/sigma.config --bundler-conf $lib_bundles_dir/$lib_bundles_config 2> $sigma_dir/preprocess_reads.err");
+run_exe("$preprocess_read_path --out $sigma_dir/short_read_analysis --tool-dir $utils_dir --nproc $nproc --contig $contigs_file --illumina-read1 $illum_read1 --illumina-read2 $illum_read2 --sigma-conf $sigma_dir/sigma.config --bundler-conf $lib_bundles_dir/$lib_bundles_config 2> $sigma_dir/preprocess_reads.err");
 if($? || ! -e "$sigma_dir/assembly_size.dat" || ! -e "$lib_bundles_dir/lib.txt"){
     die "Error during short read pre-preocessing. Please see $sigma_dir/preprocess_reads.err $sigma_dir/short_read_analysis.out $sigma_dir/short_read_analysis.err for details.\n";
 }	

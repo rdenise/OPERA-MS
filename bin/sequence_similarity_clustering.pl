@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 use warnings;
 use Statistics::Basic qw(:all);
 
@@ -13,7 +13,9 @@ use Statistics::Basic qw(:all);
 #############################################################
 my ($inter_dir, $ref_map_folder, $mapping_folder, $sigma_folder, $contig_seq_file, $nb_process, $opera_ms_db, $opera_ms_dir, $mash_exe_dir, $mummer_dir, $kraken_exe_dir) = @ARGV;
 
-require "$opera_ms_dir/bin/test_time.pl";
+use FindBin qw($Bin);
+my $current_directory = $Bin;
+require "$current_directory/test_time.pl";
 
 my $PARSE_FILES_MASH = 1;
 my $PARSE_FILES_NUC = 1;
@@ -100,9 +102,9 @@ sub run_kraken_annotation{
     run_exe("mkdir $ref_map_folder/KRAKEN_OUT");
     $kraken_out_file = "$ref_map_folder/KRAKEN_OUT/kraken.out";
     #
-    run_exe("$kraken_exe_dir/kraken --threads $nb_process -db $kraken_ref --fasta-input --output $kraken_out_file $contig_seq_file 2> $kraken_out_file.log");
-    run_exe("$kraken_exe_dir/kraken-report --db $kraken_ref $kraken_out_file > $kraken_out_file.report 2> $kraken_out_file.report.log"); #<STDIN>;
-    run_exe("$opera_ms_dir/bin/kraken_bin_file.py -k $kraken_out_file -r $kraken_out_file.report -o $kraken_out_file.annot 2> $kraken_out_file.annot.log");#<STDIN>
+    run_exe("kraken --threads $nb_process -db $kraken_ref --fasta-input --output $kraken_out_file $contig_seq_file 2> $kraken_out_file.log");
+    run_exe("kraken-report --db $kraken_ref $kraken_out_file > $kraken_out_file.report 2> $kraken_out_file.report.log"); #<STDIN>;
+    run_exe("kraken_bin_file.py -k $kraken_out_file -r $kraken_out_file.report -o $kraken_out_file.annot 2> $kraken_out_file.annot.log");#<STDIN>
 }
 
 sub add_kraken_annotation{
@@ -834,12 +836,12 @@ sub run_mash_on_clusters{
 			if ($count == $max_genome_for_sketch){
 			    $count = 0;
 			    # generate partial sketeches
-			    run_exe("$mash_exe_dir/mash sketch -p $nb_process -k 21 -s 1000 -o $partial_sketch_dir/partial_Sketch$partial_count $inter_fa_dir/* > $mash_dir/mash_sketch.out 2> $mash_dir/mash_sketch.err");
+			    run_exe("mash sketch -p $nb_process -k 21 -s 1000 -o $partial_sketch_dir/partial_Sketch$partial_count $inter_fa_dir/* > $mash_dir/mash_sketch.out 2> $mash_dir/mash_sketch.err");
 			    if($?){
 				die "Error in during bin/mash sketch. Please see $mash_dir/mash_sketch.out $mash_dir/mash_sketch.err for details.\n";
 			    }
 			    
-			    run_exe("$mash_exe_dir/mash dist -p $nb_process -d 0.90  $mash_ref $partial_sketch_dir/partial_Sketch$partial_count.msh  > $mash_dir/mash_dist_$partial_count.dat 2> $mash_dir/mash_dist.err");	    
+			    run_exe("mash dist -p $nb_process -d 0.90  $mash_ref $partial_sketch_dir/partial_Sketch$partial_count.msh  > $mash_dir/mash_dist_$partial_count.dat 2> $mash_dir/mash_dist.err");	    
 			    if($?){
 				die "Error in during bin/mash dist. Please see $mash_dir/mash_dist.err for details.\n";				
 			    }
@@ -875,15 +877,15 @@ sub run_mash_on_clusters{
 	$count++;
     }
     if($count != 0){
-	run_exe("$mash_exe_dir/mash sketch -p $nb_process -k 21 -s 1000 -o $partial_sketch_dir/partial_Sketch$partial_count $inter_fa_dir/* > $mash_dir/mash_sketch.out 2> $mash_dir/mash_sketch.err");
+	run_exe("mash sketch -p $nb_process -k 21 -s 1000 -o $partial_sketch_dir/partial_Sketch$partial_count $inter_fa_dir/* > $mash_dir/mash_sketch.out 2> $mash_dir/mash_sketch.err");
 	if($?){
 	    die "Error in during bin/mash sketch. Please see $mash_dir/mash_sketch.out $mash_dir/mash_sketch.err for details.\n";
 	}
 	run_exe("rm -r $inter_fa_dir");
     }
     
-    run_exe("$mash_exe_dir/mash dist -p $nb_process -d 0.90  $mash_ref $partial_sketch_dir/partial_Sketch$partial_count.msh  > $mash_dir/mash_dist_$partial_count.dat 2> $mash_dir/mash_dist.err");
-    #run_exe("$mash_exe_dir/mash paste $mash_dir/cluster.msh $partial_sketch_dir/partial_Sketch*");
+    run_exe("mash dist -p $nb_process -d 0.90  $mash_ref $partial_sketch_dir/partial_Sketch$partial_count.msh  > $mash_dir/mash_dist_$partial_count.dat 2> $mash_dir/mash_dist.err");
+    #run_exe("mash paste $mash_dir/cluster.msh $partial_sketch_dir/partial_Sketch*");
     if($?){
 	die "Error in during bin/mash dist. Please see $mash_dir/mash_dist.err for details.\n";
     }
@@ -931,7 +933,7 @@ sub compare_cluster{
     foreach my $genome (@common_genome){
 		
 	$ref_genome_file = "$nucmer_dir/temp_genome/$cluster_pair_name\_$count.fa";
-	$command = "zcat $genome_db/$genome > $ref_genome_file;${mummer_dir}nucmer --maxmatch -c 400 --banded $nucmer_dir/$cluster_pair_name.fa $ref_genome_file -p $nucmer_dir/$cluster_pair_name\_$count >> $nucmer_dir/LOG.txt;${mummer_dir}show-coords -lrcT $nucmer_dir/$cluster_pair_name\_$count.delta > $nucmer_dir/$cluster_pair_name\_$count.txt;rm $ref_genome_file";
+	$command = "zcat $genome_db/$genome > $ref_genome_file;nucmer --maxmatch -c 400 --banded $nucmer_dir/$cluster_pair_name.fa $ref_genome_file -p $nucmer_dir/$cluster_pair_name\_$count >> $nucmer_dir/LOG.txt;show-coords -lrcT $nucmer_dir/$cluster_pair_name\_$count.delta > $nucmer_dir/$cluster_pair_name\_$count.txt;rm $ref_genome_file";
 
         $count++;
         print $CMD $command . "\n";

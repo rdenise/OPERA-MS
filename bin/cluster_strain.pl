@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 use warnings "all";
 use Statistics::Basic qw(:all);
 use Statistics::R;
@@ -272,9 +272,9 @@ foreach $strain_id (@strain_list){
     #next if($strain_id == 2);
     $start_time = time;
     $strain_dir = "$species_dir/STRAIN_$strain_id";
-    run_exe("timeout 5m $opera_ms_dir/OPERA-LG/bin/OPERA-LG $strain_dir/opera.config  > $strain_dir/log.txt");
+    run_exe("timeout 5m OPERA-LG $strain_dir/opera.config  > $strain_dir/log.txt");
     if(! -e "$strain_dir/scaffoldSeq.fasta"){#NEED TO IN THE MAKE FILE THE COMMAND TO GET THE FASTS OPERA-MS
-	run_exe("$opera_ms_dir/OPERA-LG/bin/OPERA-LG-fast $strain_dir/opera.config  > $strain_dir/log_fast.txt");
+	run_exe("OPERA-LG-fast $strain_dir/opera.config  > $strain_dir/log_fast.txt");
     }
 
     if( ! -e "$strain_dir/scaffoldSeq.fasta"){

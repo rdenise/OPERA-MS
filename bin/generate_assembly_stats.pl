@@ -1,4 +1,4 @@
-#use strict;
+#!/usr/bin/env perl
 use warnings;
 use Statistics::Basic qw(:all);
 

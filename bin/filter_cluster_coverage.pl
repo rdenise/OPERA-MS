@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 use warnings;
 use Statistics::Basic qw(:all);
 #$use Math::NumberCruncher;

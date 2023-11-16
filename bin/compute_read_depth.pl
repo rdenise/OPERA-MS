@@ -1,4 +1,4 @@
-#use strict;
+#!/usr/bin/env perl 
 
 my $out_file = $ARGV[0];
 

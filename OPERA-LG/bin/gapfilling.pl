@@ -1,14 +1,18 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 #use strict;
 use warnings;
 
 my ($working_dir, $contig_file, $read_file, $read_mapping_dir, $nb_process, $scaffold_length_threshold, $opera_bin_dir, $perl_dir, $racon_dir,  $minimap2_dir, $mummer_dir) = @ARGV;
 
-require "$opera_bin_dir/../../bin/test_time.pl";
+use FindBin qw($Bin);
+
+my $current_directory = $Bin;
+
+require "$current_directory/test_time.pl";
 
 run_exe("mkdir $working_dir") if(! -d $working_dir);
 
-my $perl_path = "$perl_dir/perl";
+my $perl_path = "perl";
 my $start_time = time;
 my $start_time_begin = time;
 my $end_time;
@@ -40,7 +44,7 @@ my $long_read_mapping = "$read_mapping_dir/opera.map.sort.status";
 #get_read_on_single_contig($working_dir, $long_read_mapping);
 #
 
-run_exe("$perl_path $opera_bin_dir/extract_read_sequence.pl --edge-file $edge_read_info_file --contig-file $contig_file --opera-lr-dir $opera_lr_dir --read-file $read_file --output-directory $working_dir 2> $working_dir/extract_read.err");
+run_exe("extract_read_sequence.pl --edge-file $edge_read_info_file --contig-file $contig_file --opera-lr-dir $opera_lr_dir --read-file $read_file --output-directory $working_dir 2> $working_dir/extract_read.err");
 if($?){
     die "Error in during read sequence extraction. Please see $working_dir/extract_read.err for details.\n";
 }
@@ -66,7 +70,7 @@ foreach $scaff_dir (@all_dir){
     #next if($scaff_dir ne "opera_scaffold_1");
     next if($scaff_dir eq ".." || ! -e "$working_dir/$scaff_dir/scaffolds.scaf");
     
-    print OUT "$perl_path $opera_bin_dir/run_scaffold_racon.pl $working_dir/$scaff_dir/ $racon_dir $minimap2_dir 2> $working_dir/$scaff_dir/consensus.err\n";
+    print OUT "run_scaffold_racon.pl $working_dir/$scaff_dir/ $racon_dir $minimap2_dir 2> $working_dir/$scaff_dir/consensus.err\n";
     
     #last if($nb_tiling_run == 10);
     #$nb_tiling_run++;
@@ -99,7 +103,7 @@ $start_time = time;
 my $first_filling =  "$tilling_dir/first_tilling";
 if(1 || ! -e $first_filling){
     $start_time = time;
-    run_exe("$perl_path $opera_bin_dir/run_mummer_large_ref.pl $consensus_file $tilling_dir/REF $contig_file $tilling_dir/QUERY $working_dir $first_filling.coords $nb_process $mummer_dir > $tilling_dir/tilling_1.out 2> $tilling_dir/tilling_1.err");
+    run_exe("run_mummer_large_ref.pl $consensus_file $tilling_dir/REF $contig_file $tilling_dir/QUERY $working_dir $first_filling.coords $nb_process $mummer_dir > $tilling_dir/tilling_1.out 2> $tilling_dir/tilling_1.err");
     if($?){
 	die "Error during tilling generation. Please see $tilling_dir/tilling_1.out and $tilling_dir/tilling_1.err for details.\n";
     }
@@ -114,7 +118,7 @@ get_paf_file($assembly_scaffold_file, "$first_filling.coords", "$first_filling.p
 
 get_contig_in_gap("$first_filling.paf", $contig_file, "$first_filling\_contig.fa");
 
-run_exe("python $opera_bin_dir/Remap.py $first_filling.paf $consensus_file $first_filling\_contig.fa > $tilling_dir/tilling_1_remap.out");
+run_exe("Remap.py $first_filling.paf $consensus_file $first_filling\_contig.fa > $tilling_dir/tilling_1_remap.out");
 if($?){
     die "Error during contig remapping. Please see $tilling_dir/tilling_1_remap.out for details.\n";
 }
@@ -138,7 +142,7 @@ close(FILE);
 my $second_tilling =  "$tilling_dir/second_tilling";
 if(1 || ! -e $second_tilling){
     $start_time = time;
-    run_exe("$perl_path $opera_bin_dir/run_mummer_large_ref.pl $tilling_dir/consensus_remapped.fasta $tilling_dir/REF $contig_file $tilling_dir/QUERY $tilling_dir/ $second_tilling.coords $nb_process $mummer_dir  > $tilling_dir/tilling_1.out 2> $tilling_dir/tilling_2.err");
+    run_exe("run_mummer_large_ref.pl $tilling_dir/consensus_remapped.fasta $tilling_dir/REF $contig_file $tilling_dir/QUERY $tilling_dir/ $second_tilling.coords $nb_process $mummer_dir  > $tilling_dir/tilling_1.out 2> $tilling_dir/tilling_2.err");
     if($?){
 	die "Error during tilling generation. Please see $tilling_dir/tilling_2.out and $tilling_dir/tilling_2.err for details.\n";
     }
@@ -148,7 +152,7 @@ get_paf_file($assembly_scaffold_file, "$second_tilling.coords", "$second_tilling
 
 get_contig_in_gap("$second_tilling.paf", $contig_file, "$second_tilling\_contig.fa");
     
-run_exe("python $opera_bin_dir/Remap.py $second_tilling.paf $tilling_dir/consensus_remapped.fasta $second_tilling\_contig.fa >  $tilling_dir/tilling_2_remap.out");
+run_exe("Remap.py $second_tilling.paf $tilling_dir/consensus_remapped.fasta $second_tilling\_contig.fa >  $tilling_dir/tilling_2_remap.out");
 if($?){
     die "Error during contig remapping. Please see $tilling_dir/tilling_2_remap.out for details.\n";
 }

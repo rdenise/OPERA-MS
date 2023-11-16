@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 use Getopt::Long;
 
 #$path = "/mnt/software/stow/bwa-0.7.10/bin/";
@@ -199,12 +199,12 @@ sub buildIndexUsingBowtie
     {
 	if( $type eq "cs" )
 	{
-	    $command = "${path}bowtie-build -C $contigFile $folder$contigName[ -1 ]";
+	    $command = "bowtie-build -C $contigFile $folder$contigName[ -1 ]";
 	    `$command` or die "ERROR! Running bowtie-build error.\n";
 	}
 	else
 	{
-	    $command = "${path}bowtie-build $contigFile $folder$contigName[ -1 ]";
+	    $command = "bowtie-build $contigFile $folder$contigName[ -1 ]";
 	    `$command` or die "ERROR! Running bowtie-build error.\n";
 	}
     }
@@ -221,11 +221,11 @@ sub mapWithBowtie
     print "Mapping reads using bowtie...\n";
     if( $type eq "cs" )
     {
-	$command = "${path}bowtie -v 3 -a -m 1 -S -t -C $fasta -p 15 $folder$contigName[ -1 ] - 2>${folder}bowtie.err | sort -n > $folder$outputFile";
+	$command = "bowtie -v 3 -a -m 1 -S -t -C $fasta -p 15 $folder$contigName[ -1 ] - 2>${folder}bowtie.err | sort -n > $folder$outputFile";
     }
     else
     {
-	$command = "${path}bowtie -v 3 -a -m 1 -S -t $fasta -p 15 $folder$contigName[ -1 ] - 2>${folder}bowtie.err | sort -n > $folder$outputFile";
+	$command = "bowtie -v 3 -a -m 1 -S -t $fasta -p 15 $folder$contigName[ -1 ] - 2>${folder}bowtie.err | sort -n > $folder$outputFile";
     }
 }
 
@@ -239,12 +239,12 @@ sub buildIndexUsingBwa
     {
 	if( $type eq "cs" )
 	{
-	    $command = "${path}bwa index -c -p $folder$contigName[ -1 ] $contigFile";
+	    $command = "bwa index -c -p $folder$contigName[ -1 ] $contigFile";
 	    `$command`;# or die "Error during bwa index creation.\n";
 	}
 	else
 	{
-	    $command = "${path}bwa index -p $folder$contigName[ -1 ] $contigFile";
+	    $command = "bwa index -p $folder$contigName[ -1 ] $contigFile";
 	    print $command."\n";
 	    `$command`;# or die "Error during bwa index creation.\n";
 	}
@@ -328,7 +328,7 @@ sub findSAWithBwa
     $time = localtime;
     print "[$time]\t";
     print "Finding the SA coordinates of the reads using BWA aln...\n";
-    $command = "${path}bwa aln -t $nproc $folder$contigName[ -1 ] - > ${folder}$outputFile\_read.sai";
+    $command = "bwa aln -t $nproc $folder$contigName[ -1 ] - > ${folder}$outputFile\_read.sai";
     if($?){
 	die "Error during bwa aln. Please see log for details.\n";
     }
@@ -339,11 +339,11 @@ sub generateAlignmentUsingBwa
     $time = localtime;
     print "[$time]\t";
     print "Generate alignments of reads using bwa samse...\n";
-    # $command = "${path}bwa samse -n 1 $folder$contigName[ -1 ] ${folder}read.sai - | awk \'{ if( \$3 != \"*\" ) print \$0 }\' > $folder$outputFile";
-    # $command = "${path}bwa samse -n 1 $folder$contigName[ -1 ] ${folder}read.sai - | grep '\\(^@\\|XT:A:U\\)' | samtools view -S -h -b -F 0x4 - | samtools sort -no - ${folder}temporarySam | samtools view -h -b - > $folder$outputFile";
-    #$command = "${path}bwa samse -n 1 $folder$contigName[ -1 ] ${folder}read.sai - | grep '\\(^@\\|XT:A:U\\)' | ${samtoolsDir}samtools view -S -h -b -F 0x4 - | ${samtoolsDir}samtools sort -\@ 20 -no - ${folder}temporarySam > $folder$outputFile";
-    #$command = "${path}bwa samse -n 1 $folder$contigName[ -1 ] ${folder}$outputFile\_read.sai - | grep '\\(^@\\|XT:A:U\\)' | ${samtoolsDir}samtools view -S -h -b -F 0x4 - | ${samtoolsDir}samtools sort -\@ $nproc -no - ${folder}$outputFile\_temp > $folder$outputFile";
-    $command = "${path}bwa samse -n 1 $folder$contigName[ -1 ] ${folder}$outputFile\_read.sai - | grep '\\(^@\\|XT:A:U\\)' | ${samtoolsDir}samtools view -S -h -b -F 0x4 -  > $folder$outputFile";
+    # $command = "bwa samse -n 1 $folder$contigName[ -1 ] ${folder}read.sai - | awk \'{ if( \$3 != \"*\" ) print \$0 }\' > $folder$outputFile";
+    # $command = "bwa samse -n 1 $folder$contigName[ -1 ] ${folder}read.sai - | grep '\\(^@\\|XT:A:U\\)' | samtools view -S -h -b -F 0x4 - | samtools sort -no - ${folder}temporarySam | samtools view -h -b - > $folder$outputFile";
+    #$command = "bwa samse -n 1 $folder$contigName[ -1 ] ${folder}read.sai - | grep '\\(^@\\|XT:A:U\\)' | samtools view -S -h -b -F 0x4 - | samtools sort -\@ 20 -no - ${folder}temporarySam > $folder$outputFile";
+    #$command = "bwa samse -n 1 $folder$contigName[ -1 ] ${folder}$outputFile\_read.sai - | grep '\\(^@\\|XT:A:U\\)' | samtools view -S -h -b -F 0x4 - | samtools sort -\@ $nproc -no - ${folder}$outputFile\_temp > $folder$outputFile";
+    $command = "bwa samse -n 1 $folder$contigName[ -1 ] ${folder}$outputFile\_read.sai - | grep '\\(^@\\|XT:A:U\\)' | samtools view -S -h -b -F 0x4 -  > $folder$outputFile";
     print $command."\n";
     if($?){
 	die "Error during bwa samse. Please see log for details.\n";
@@ -355,7 +355,7 @@ sub generateAlignmentUsingBwamem
     $time = localtime;
     print "[$time]\t";
     print "Generate alignments of reads using bwa mem...\n";
-    $command = "${path}bwa mem -t 20 $folder$contigName[ -1 ] - | ${samtoolsDir}samtools view -S -h -b -F 0x4 -  > $folder$outputFile 2> $folder$outputFile.log";
+    $command = "bwa mem -t 20 $folder$contigName[ -1 ] - | samtools view -S -h -b -F 0x4 -  > $folder$outputFile 2> $folder$outputFile.log";
     print $command."\n";
     #if($?){
     #die "Error during bwa mem. Please see log for details.\n";
@@ -368,7 +368,7 @@ sub generateAlignmentUsingBwamemCov
     $time = localtime;
     print "[$time]\t";
     print "Generate alignments of reads using bwa mem...\n";
-    $command = "${path}bwa mem -t 20 $folder$contigName[ -1 ] - | ${path}samtools view -S -h -F 0x4 -  | ${path}../bin/short_read_analysis $bundler_conf $sigma_conf > $folder$outputFile.out 2> $folder$outputFile.err";
+    $command = "bwa mem -t 20 $folder$contigName[ -1 ] - | samtools view -S -h -F 0x4 -  | short_read_analysis $bundler_conf $sigma_conf > $folder$outputFile.out 2> $folder$outputFile.err";
     print $command."\n";
     #if($?){
     #die "Error during bwa mappnig and processing. Please see $folder$outputFile.out $folder$outputFile.err for details.\n";

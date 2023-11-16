@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 use warnings "all";
 use Statistics::Basic qw(:all);
 
@@ -58,9 +58,9 @@ sub evaluate_cluster{
 
     $res = 0;
     
-    run_exe("$perl_dir/perl $opera_ms_dir/bin/cluster_evaluation.pl $coverage_contig_file $cluster_file 2> $out_file");
+    run_exe("cluster_evaluation.pl $coverage_contig_file $cluster_file 2> $out_file");
     if($?){
-	die "Error in during bin/cluster_evaluation.pl. Please see $out_file for details.\n";
+	die "Error in during cluster_evaluation.pl. Please see $out_file for details.\n";
     }
     
     #get the fraction of the assembly with outlier contigs

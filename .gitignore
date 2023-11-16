@@ -1,6 +1,8 @@
 *~
 \#*
 *.o
+.vscode*
+.mypy_cache*
 OPERA-LG/bin/OPERA-LG
 SIGMA/sigma.config
 bin/bundler

@@ -1,3 +1,5 @@
+#!/usr/bin/env perl
+
 use warnings; 
 use Cwd; 
 
@@ -51,10 +53,10 @@ foreach $ref (@split_ref){
 
 	foreach $query (@split_query){
 	    if(index($query, ".fa") != -1){
-		print $OUT_delta "$mummer_path/nucmer --nosimplify --maxmatch -p $split_mummer_dir/$ref\_$query $split_ref_dir/$ref $split_query_dir/$query > /dev/null 2> /dev/null \n";
+		print $OUT_delta "nucmer --nosimplify --maxmatch -p $split_mummer_dir/$ref\_$query $split_ref_dir/$ref $split_query_dir/$query > /dev/null 2> /dev/null \n";
 		#Filtet on identity to avoid alignement comming from contig of other species or repeat
-		print $OUT_delta_filter "$mummer_path/delta-filter -i95 -r $split_mummer_dir/$ref\_$query.delta > $split_mummer_dir/$ref\_$query.delta.filter\n";
-		print $OUT_coord "$mummer_path/show-coords -T -l  $split_mummer_dir/$ref\_$query.delta.filter > $split_mummer_dir/$ref\_$query.coord\n";
+		print $OUT_delta_filter "delta-filter -i95 -r $split_mummer_dir/$ref\_$query.delta > $split_mummer_dir/$ref\_$query.delta.filter\n";
+		print $OUT_coord "show-coords -T -l  $split_mummer_dir/$ref\_$query.delta.filter > $split_mummer_dir/$ref\_$query.coord\n";
 	    }
 	}
     }

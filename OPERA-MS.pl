@@ -1,3 +1,5 @@
+#!/usr/bin/env perl
+
 #use strict;
 use warnings;
 use Cwd;
@@ -64,7 +66,7 @@ check_data(\%opera_ms_option);
 
 #Check if the database contains all the information
 if(($opera_ms_option{"REF_CLUSTERING"}) && !check_database(\%opera_ms_option)){
-    die "OPERA-MS default database not found. You can download the default OPERA-MS-DB using the following command: perl OPERA-MS.pl install-db";
+    die "OPERA-MS default database not found. You can download the default OPERA-MS-DB using the following command: operams install-db";
 }
 
 
@@ -89,7 +91,7 @@ else{#Normal metagenome pipeleine
 }
 
 gap_filling(\%opera_ms_option, \%opera_ms_dependency);
-#
+# 
 generate_assembly_stats(\%opera_ms_option, \%opera_ms_dependency);
 write_final_assembly(\%opera_ms_option, \%opera_ms_dependency);
 #
@@ -279,7 +281,7 @@ sub check_dependency{
     
     #For the perl verion
     if($stage eq "CHECK_DEPENDENCY"){
-	my $perl_path = "$utils_dir/perl";
+	my $perl_path = "perl";
 	`rm $perl_path` if(-e "$perl_path");
 	`ln -s $^X $perl_path`;
     }
@@ -505,7 +507,7 @@ sub run_megahit{
     #Stage 0: short assembly using megahit if the contig file is not provided in the config file
     if(! check_completed($opera_ms_option->{"CONTIGS_FILE"}, "Short read assembly [MEGAHIT]", 1)){
 	run_exe("rm -r $megahit_out_dir") if(-d $megahit_out_dir);
-	run_exe($opera_ms_dependency->{"megahit"}."/megahit " . 
+	run_exe("megahit " . 
 		"--num-cpu-threads " . $opera_ms_option->{"NUM_PROCESSOR"} . " " .
 		"-1 " . $opera_ms_option->{"ILLUMINA_READ_1"} . " " .
 		"-2 " . $opera_ms_option->{"ILLUMINA_READ_2"} . " " .
@@ -526,7 +528,7 @@ sub run_spades{
     #Stage 0: short assembly using megahit if the contig file is not provided in the config file
     if(! check_completed($opera_ms_option->{"CONTIGS_FILE"}, "Short read assembly [SPAdes]", 1)){
 	run_exe("rm -r $assembly_out_dir") if(-d $assembly_out_dir);
-	run_exe($opera_ms_dependency->{"spades"}."/spades.py " .
+	run_exe("spades.py " .
 		"--meta " .
 		"--threads " . $opera_ms_option->{"NUM_PROCESSOR"} . " " .
 		"-1 " . $opera_ms_option->{"ILLUMINA_READ_1"} . " " .
@@ -594,27 +596,26 @@ sub assembly_graph_creation{
 	    #print STDERR "\n--- STARTING OPERA-long-read.pl ----\n";
 	    $start_time_sub = time;
 	    
-	    $long_read_mapper_option = " --minimap2 " . $opera_ms_dependency->{"minimap2"} if($opera_ms_option->{"LONG_READ_MAPPER"} eq "minimap2");
-	    $long_read_mapper_option = " --blasr " . $opera_ms_dependency->{"blasr"} if($opera_ms_option->{"LONG_READ_MAPPER"} eq "blasr");
+	    $long_read_mapper_option = " --minimap2 " . "minimap2" if($opera_ms_option->{"LONG_READ_MAPPER"} eq "minimap2");
+	    $long_read_mapper_option = " --blasr " . "blasr" if($opera_ms_option->{"LONG_READ_MAPPER"} eq "blasr");
 	    
-	    run_exe($opera_ms_dependency->{"perl"}."perl " . 
-		    $opera_ms_dependency->{"OPERA-LG"}."/OPERA-long-read.pl" . 
-		    " --contig-file " . $opera_ms_option->{"CONTIGS_FILE"} . 
-		    " --kmer " . $opera_ms_option->{"KMER_SIZE"} . 
-		    " --long-read-file " . $opera_ms_option->{"LONG_READ"} . 
-		    " --output-prefix " . "opera" . 
-		    " --output-directory " . $mapping_dir . 
-		    " --num-of-processors " . $opera_ms_option->{"NUM_PROCESSOR"} . 
-		    " --opera " . $opera_ms_dependency->{"OPERA-LG"} .
-		    " --illumina-read1 " . $opera_ms_option->{"ILLUMINA_READ_1"} . 
-		    " --illumina-read2 " . $opera_ms_option->{"ILLUMINA_READ_2"} . 
-		    " --samtools-dir " . $opera_ms_dependency->{"samtools"} .
-		    " --perl-dir " . $opera_ms_dependency->{"perl"} .   
-		    $long_read_mapper_option . 
-		    " --short-read-tooldir " . $opera_ms_dependency->{"bwa"} .
-		    " --skip-opera " . "1 " .
-		    " --skip-short-read-mapping " . "1 " .
-		    "> $mapping_dir/OPERA-long-read.out  2> $mapping_dir/OPERA-long-read.err"
+		run_exe("OPERA-long-read.pl" . 
+			" --contig-file " . $opera_ms_option->{"CONTIGS_FILE"} . 
+			" --kmer " . $opera_ms_option->{"KMER_SIZE"} . 
+			" --long-read-file " . $opera_ms_option->{"LONG_READ"} . 
+			" --output-prefix " . "opera" . 
+			" --output-directory " . $mapping_dir . 
+			" --num-of-processors " . $opera_ms_option->{"NUM_PROCESSOR"} . 
+			" --opera " . $opera_ms_dependency->{"OPERA-LG"} .
+			" --illumina-read1 " . $opera_ms_option->{"ILLUMINA_READ_1"} . 
+			" --illumina-read2 " . $opera_ms_option->{"ILLUMINA_READ_2"} . 
+			" --samtools-dir " . "" .
+			" --perl-dir " . $^X .   
+			$long_read_mapper_option . 
+			" --short-read-tooldir " . "" .
+			" --skip-opera " . "1 " .
+			" --skip-short-read-mapping " . "1 " .
+			"> $mapping_dir/OPERA-long-read.out  2> $mapping_dir/OPERA-long-read.err"
 		);
 	    #
 	    #Error in STAGE 1
@@ -655,7 +656,7 @@ sub assembly_graph_creation{
 	    }
 	    
 	    #
-	    print CONF "SAMTOOLS_DIR " . $opera_ms_dependency->{"samtools"} . "\n";
+	    print CONF "SAMTOOLS_DIR " . "" . "\n";
 	    print CONF "TOOLS_DIR " . $opera_ms_dependency->{"OPERA_MS_TOOLS"} . "\n";
 	    
 	    close(CONF);
@@ -663,7 +664,7 @@ sub assembly_graph_creation{
 	    #SIGMA on short reads used to estimate the contig read coverage 
 	    #bundling of short reads (can be use if fix the problem with short reads)
 	    $start_time_sub = time;
-	    run_exe($opera_ms_dependency->{"perl"}."perl ${opera_ms_dir}/bin/cov_estimate.pl $cov_estimate_config > $cov_dir/cov_estimate.out 2> $cov_dir/cov_estimate.err");
+	    run_exe("cov_estimate.pl $cov_estimate_config > $cov_dir/cov_estimate.out 2> $cov_dir/cov_estimate.err");
 	    if($?){
 		die "Error in during cov_estimate.pl. Please see $cov_dir/cov_estimate.out and $cov_dir/cov_estimate.err for details.\n";
 	    }
@@ -674,7 +675,7 @@ sub assembly_graph_creation{
 	    #
 	    if(! $opera_ms_option->{"MULTI_SAMPLE"}){
 		$start_time_sub = time;
-		run_exe($opera_ms_dependency->{"perl"}."perl ${opera_ms_dir}bin/filter_edge_coverage_ratio.pl $mapping_dir " . "$cov_dir/".$opera_ms_option{"CONTIGS_COV_FILE"} . " 2> $mapping_dir/filter_edge_coverage_ratio.err");
+		run_exe("filter_edge_coverage_ratio.pl $mapping_dir " . "$cov_dir/".$opera_ms_option{"CONTIGS_COV_FILE"} . " 2> $mapping_dir/filter_edge_coverage_ratio.err");
 		write_time($inter_dir, "cov_filtering", ($end_time_sub - $start_time_sub));
 		$end_time_sub = time;
 		if($?){
@@ -717,10 +718,10 @@ sub hierarchical_clustering{
 	    }
 	    
 	    #Refine the sigma R parameter
-	    run_exe($opera_ms_dependency->{"perl"}."perl ${opera_ms_dir}bin/refine_r_estimate.pl " .
+	    run_exe("refine_r_estimate.pl " .
 		    $cov_dir."/".$opera_ms_option->{"CONTIGS_COV_FILE"} . " " . 
 		    $sigma_dir . " " .
-		    $opera_ms_dependency->{"perl"} . " " .
+		    "" . " " .
 		    $opera_ms_option->{"NUM_PROCESSOR"} . " " .
 		    $opera_ms_option->{"CLUSTER_LEN_THRESHOLD"} . " " .
 		    $opera_ms_dir . " 2> $sigma_dir/refine_r.err"
@@ -754,7 +755,7 @@ sub reference_clustering{
 	    
 	    
 	    
-	    run_exe($opera_ms_dependency->{"perl"}."perl ${opera_ms_dir}bin/sequence_similarity_clustering.pl " . 
+	    run_exe("sequence_similarity_clustering.pl " . 
 		    $inter_dir . " " .
 		    $ref_clustering_dir . " " .
 		    $opera_ms_option->{"MAPPING_DIR"} . " " .
@@ -763,9 +764,9 @@ sub reference_clustering{
 		    $opera_ms_option->{"NUM_PROCESSOR"} . " " .
 		    $opera_ms_option->{"OPERA_MS_DB"} . " " .
 		    $opera_ms_dir . " " . 
-		    $opera_ms_dependency->{"mash"} . " " .
-		    $opera_ms_dependency->{"mummer"} . " " . 
-		    $opera_ms_dependency->{"kraken"} . " 2> $ref_clustering_dir/sequence_similarity_clustering.err");
+		    "" . " " .
+		    "" . " " . 
+		    "" . " 2> $ref_clustering_dir/sequence_similarity_clustering.err");
 	    if($?){
 		die "Error in during reference based clustering. Please see $ref_clustering_dir/sequence_similarity_clustering.err for details.\n";
 	    }
@@ -801,14 +802,14 @@ sub strain_clustering_and_assembly{
 	    #->if a species contains the strain each strain will be assembled independently by opera-lg
 	    #->if a species does not contain the strain they are all pulled together and assembled in a single run by opera-lg
 	    
-	    run_exe($opera_ms_dependency->{"perl"}."perl ${opera_ms_dir}bin/coverage_clustering.pl " . 
+	    run_exe("coverage_clustering.pl " . 
 		    $opera_ms_option->{"INTER_DIR"} . " " .
 		    $strain_dir . " " .
 		    $opera_ms_option->{"CONTIGS_FILE"} . " " .
 		    $ref_clustering_dir . " "  .
 		    $opera_ms_option->{"OPERA_MS_DB"} . " " .
 		    $opera_ms_dir . " " .
-		    $opera_ms_dependency->{"perl"} . " " .
+		    "" . " " .
 		    "1  " . "2>  $strain_dir/coverage_clustering.err");
 	    if($?){
 		die "Error in during strain clustering. Please see $strain_dir/coverage_clustering.err for details.\n";
@@ -829,7 +830,7 @@ sub strain_clustering_and_assembly{
 		@line = split(/\t/, $_);
 		$species = $line[0];
 		$species_length = $line[1];
-		print CMD_STRAIN $opera_ms_dependency->{"perl"}."perl ${opera_ms_dir}bin/cluster_strain.pl $strain_dir/$species $species_length $global_r_value $r_value_step $opera_ms_dir 2> $strain_dir/$species.log" . "\n";
+		print CMD_STRAIN "cluster_strain.pl $strain_dir/$species $species_length $global_r_value $r_value_step $opera_ms_dir 2> $strain_dir/$species.log" . "\n";
 	    }
 	    close(FILE);
 	    close(CMD_STRAIN);
@@ -873,7 +874,7 @@ sub strain_clustering_and_assembly{
 	    
 	    $contig_coverage_file = $opera_ms_option->{"COV_DIR"} . "/" . $opera_ms_option->{"CONTIGS_COV_FILE"};
 	    
-	    run_exe($opera_ms_dependency->{"perl"}."perl ${opera_ms_dir}bin/filter_cluster_coverage.pl $contig_coverage_file $reference_cluster_file $clustering_edge_dir 1.5 $clustering_edge_dir/NO_REPEAT 2> $clustering_edge_dir/filter_cluster_coverage.err");
+	    run_exe("filter_cluster_coverage.pl $contig_coverage_file $reference_cluster_file $clustering_edge_dir 1.5 $clustering_edge_dir/NO_REPEAT 2> $clustering_edge_dir/filter_cluster_coverage.err");
 	    if($?){
 		die "Error in during filter_cluster_coverage. Please see $clustering_edge_dir/filter_cluster_coverage.err for details.\n";
 	    }
@@ -1041,7 +1042,7 @@ sub gap_filling{
     
 	    #perform the gap fill
 	    if($opera_ms_option->{"REF_CLUSTERING"}){
-		#run_exe("${opera_ms_dir}utils/perl $opera_ms_dir/bin/match_scaffolds_clusters.pl " . 
+		#run_exe("match_scaffolds_clusters.pl " . 
 		#	$opera_ms_option->{"REF_CLUSTERING_DIR"} . " " .
 		#	$opera_ms_option->{"NUM_PROCESSOR"} . " " .
 		#	"$opera_lr_dir/scaffoldSeq.fasta" . " " .
@@ -1056,7 +1057,7 @@ sub gap_filling{
 	    #print STDERR " ------ " . $opera_ms_option->{"GAP_FILLING"} . "\n";
 	    if($opera_ms_option->{"GAP_FILLING"}){
 		
-		run_exe($opera_ms_dependency->{"perl"}."perl $opera_lg_dir/gapfilling.pl " .
+		run_exe("gapfilling.pl " .
 			$gap_filling_dir . " " .
 			$opera_ms_option->{"CONTIGS_FILE"} . " " .
 			$opera_ms_option->{"LONG_READ"} . " " .
@@ -1064,10 +1065,10 @@ sub gap_filling{
 			$opera_ms_option->{"NUM_PROCESSOR"} . " " .
 			$opera_ms_option->{"FILLED_SCAFF_LENGTH"} . " " .
 			"$opera_lg_dir" . " " .
-			$opera_ms_dependency->{"perl"} . " " .
-			$opera_ms_dependency->{"racon"} . " " .
-			$opera_ms_dependency->{"minimap2"} . " " .
-			$opera_ms_dependency->{"mummer"} . " " . 
+			"" . " " .
+			"" . " " .
+			"" . " " .
+			"" . " " . 
 			"2> $gap_filling_dir/gap_filling.err"
 		    );
 		if($?){
@@ -1083,7 +1084,7 @@ sub gap_filling{
 
 	    #NEED TO TEST ON THAT
 	    #Remove the contigs that have been used during gapfiling in the .fa file
-	    #$command = "perl $opera_ms_dir/bin/clean_scaffolds_repeats.pl $output_dir/$inter";
+	    #$command = "clean_scaffolds_repeats.pl $output_dir/$inter";
 	    #run_exe($command);
 	    #$command = "mv $output_dir/lib_* $output_dir/$inter; rm -r $output_dir/$inter/scaffolds; mv $output_dir/runOperaMS.config $output_dir/$inter/";
 	    #run_exe($command);
@@ -1117,28 +1118,27 @@ sub polishing{
 	    my $bwa_err = "$polishing_dir/bwa_index.err";
 	    my $bwa_out = "$polishing_dir/bwa_index.out";
 	    #Refence index
-	    run_exe($opera_ms_dependency->{"bwa"} . "/bwa index $temp_contig > $bwa_out 2> $bwa_err");
+	    run_exe("bwa index $temp_contig > $bwa_out 2> $bwa_err");
 	    if($?){
 		die "Error in during bwa indexing. Please see $bwa_out and $bwa_err for details.\n";
 	    }
 	    #Get a sorted bam file
 	    $bwa_err = "$polishing_dir/bwa.err";
 	    $bwa_out = "$polishing_dir/bwa.out";
-	    run_exe($opera_ms_dependency->{"bwa"} . "/bwa mem -t $num_processor $temp_contig  $read_1 $read_2 2>> $bwa_err| " . 
-		    $opera_ms_dependency->{"samtools"} ."/samtools view -Sub - 2>> $bwa_err | " . 
-		    $opera_ms_dependency->{"samtools"} . "/samtools sort - $temp_contig > $bwa_out 2>> $bwa_err");
+	    run_exe("bwa mem -t $num_processor $temp_contig  $read_1 $read_2 2>> $bwa_err| " . 
+		    "samtools view -Sub - 2>> $bwa_err | " . 
+		    "samtools sort - $temp_contig > $bwa_out 2>> $bwa_err");
 	    if($?){
 		die "Error in during bwa mapping. Please see $bwa_out and $bwa_err for details.\n";
 	    }
 	    #Index the bam file
-	    run_exe($opera_ms_dependency->{"samtools"} ."/samtools index $temp_contig.bam >> $bwa_out 2>> $bwa_err");
+	    run_exe("samtools index $temp_contig.bam >> $bwa_out 2>> $bwa_err");
 	    if($?){
 		die "Error in during samtools indexing. Please see $bwa_out and $bwa_err for details.\n";
 	    }
 	    
 	    #run pilon [in multi thread]
-	    $pilon_path = $opera_ms_dependency->{"pilon"}."/pilon.jar";
-	    run_exe("java -jar $pilon_path --fix bases --threads $num_processor --genome $temp_contig --bam $temp_contig.bam --outdir $polishing_dir > $polishing_dir/pilon.out 2> $polishing_dir/pilon.err");
+	    run_exe("pilon --fix bases --threads $num_processor --genome $temp_contig --bam $temp_contig.bam --outdir $polishing_dir > $polishing_dir/pilon.out 2> $polishing_dir/pilon.err");
 	    if($?){
 		die "Error in during pilon. Please see $polishing_dir/pilon.out and $polishing_dir/pilon.err for details.\n";
 	    }
@@ -1182,7 +1182,7 @@ sub generate_assembly_stats{
     $start_time = time;
     $opera_ms_option->{"CONTIG_INFO"} = "$final_output_dir/contig_info.txt";
     
-    run_exe($opera_ms_dependency->{"perl"}."/perl $opera_ms_dir/bin/generate_assembly_stats.pl " .
+    run_exe("generate_assembly_stats.pl " .
 	    "$opera_lr_dir/scaffolds.scaf" . " " .
 	    $cluster_file . " " .
 	    $read_size . " " .
@@ -1194,7 +1194,7 @@ sub generate_assembly_stats{
 	    $opera_ms_option->{"CONTIG_INFO"} . " " . 
 	    $opera_ms_dir . " " .
 	    $opera_ms_option->{"NUM_PROCESSOR"} . " " . 
-	    $opera_ms_dependency->{"mummer"} . " 2> $opera_lr_dir/g_assembly_stats.err");
+	    "" . " 2> $opera_lr_dir/g_assembly_stats.err");
     if($?){
 	die "Error in during assembly statistics generation. Please see $ref_clustering_dir/s_info.err for details.\n";
     }
@@ -1373,11 +1373,11 @@ sub generate_cluster_stats{
 
     #Run mash if not runned
     my $mash_dist_file = "$cluster_dir/mash.dist";
-    run_exe($opera_ms_dependency->{"mash"} ."/mash". " dist -p 1 -d 0.2 " . $opera_ms_option{"OPERA_MS_DB"} ."/genomes.msh" . " " .  "$cluster_dir/*fa* > $mash_dist_file") if(! -e $mash_dist_file);
+    run_exe("mash dist -p 1 -d 0.2 " . $opera_ms_option{"OPERA_MS_DB"} ."/genomes.msh" . " " .  "$cluster_dir/*fa* > $mash_dist_file") if(! -e $mash_dist_file);
     
     #Get the statistics
     my $opera_ms_dir = $opera_ms_option->{"OPERA_MS_DIR"};
-    run_exe($opera_ms_dependency->{"perl"}."perl $opera_ms_dir/bin/cluster_info.pl " . $opera_ms_option{"OUTPUT_DIR"} . " $cluster_dir > $cluster_dir/../../cluster_info.txt");
+    run_exe("cluster_info.pl " . $opera_ms_option{"OUTPUT_DIR"} . " $cluster_dir > $cluster_dir/../../cluster_info.txt");
 }
 
 sub check_completed{
@@ -1697,7 +1697,7 @@ sub print_help{
 contacts: Jean-Sebastien Gounot <jean-sebastien\@gis.a-star.edu.sg>
 
 Usage:
-  perl OPERA-MS.pl [options] --illumina-read1 <pe1> --illumina-read2 <pe2> --long-read-file <lr> --output-directory <out_dir>
+  operams [options] --illumina-read1 <pe1> --illumina-read2 <pe2> --long-read-file <lr> --output-directory <out_dir>
 
 Required arguments:
     

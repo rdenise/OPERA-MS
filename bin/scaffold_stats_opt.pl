@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 use warnings "all";
 
 ($seq_file, $min_contig_size, $min_scaffold_size) = @ARGV;

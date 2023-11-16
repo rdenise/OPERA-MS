@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 use warnings;
 use Getopt::Long;
 
@@ -173,12 +173,12 @@ my $str_full_path = "or please enter the full path";
 if ( ! -e $contigFile ) {die "\nError: $contigFile - contig file does not exist $str_full_path\n"};
 if ( ! -e $readsFile ) {die "\nError: $readsFile - long read file does not exist $str_full_path\n"};
 
-if ( ! -e "$blasrDir/blasr" && $blasrDir ne "") {die "\nError: $blasrDir - blasr does not exist in the directory $str_full_path\n"};
+if ( ! -e "blasr" && $blasrDir ne "") {die "\nError: $blasrDir - blasr does not exist in the directory $str_full_path\n"};
 
 
 #if ( ! -e "$graphmapDir/graphmap" ) {die "$! graphmap does not exist in the directory $str_full_path\n"};
-if ( ! -e "$operaDir/OPERA-LG" && $operaDir ne "") {die "\nError:$operaDir - OPERA-LG does not exist in the directory $str_full_path\n"};
-if ( ! -e "$short_read_tooldir/bwa" && $short_read_maptool eq "bwa" && $short_read_tooldir ne "") {die "\nError: $short_read_tooldir - bwa does not exist in the directory $str_full_path\n"};
+if ( ! -e "OPERA-LG" && $operaDir ne "") {die "\nError:$operaDir - OPERA-LG does not exist in the directory $str_full_path\n"};
+if ( ! -e "bwa" && $short_read_maptool eq "bwa" && $short_read_tooldir ne "") {die "\nError: $short_read_tooldir - bwa does not exist in the directory $str_full_path\n"};
 
 
 #map illumina reads to the contigs using preprocess_reads.pl
@@ -192,7 +192,7 @@ if(index($illum_read1, ",") == -1){#single sample assembly
     if( !$skip_short_read_mapping && ! -e "${file_pref}.bam" &&  !($illum_read1 eq "NONE" && $illum_read2 eq "NONE")){
 	$start_time = time;
 	print " *** *** Mapping short-reads using  $short_read_maptool...\n";
-    	run_exe("$perl_dir/perl $operaDir/preprocess_reads.pl $str_path_dir --nproc $nproc --contig $contigFile --illumina-read1 $illum_read1 --illumina-read2 $illum_read2 --out ${file_pref}.bam 2> preprocess_reads.err");
+    	run_exe("preprocess_reads.pl $str_path_dir --nproc $nproc --contig $contigFile --illumina-read1 $illum_read1 --illumina-read2 $illum_read2 --out ${file_pref}.bam 2> preprocess_reads.err");
 	if($?){
 	    die "Error during read preprocessing. Please see $outputDir/preprocess_reads.err for details.\n";
 	}
@@ -205,7 +205,7 @@ else{
     @illum_read2_tab = split(/,/, $illum_read2);
     for(my $i = 0; $i < @illum_read1_tab; $i++){
 	if(! -e "$file_pref\_$i.bam"){
-	    run_exe("$perl_dir/perl $operaDir/preprocess_reads.pl $str_path_dir --nproc $nproc --contig $contigFile --illumina-read1 $illum_read1_tab[$i] --illumina-read2 $illum_read2_tab[$i] --out $file_pref\_$i.bam");
+	    run_exe("preprocess_reads.pl $str_path_dir --nproc $nproc --contig $contigFile --illumina-read1 $illum_read1_tab[$i] --illumina-read2 $illum_read2_tab[$i] --out $file_pref\_$i.bam");
 	}
     }
 }
@@ -220,7 +220,7 @@ if(! -e "$file_pref.map.sort"){
     $start_time = time;
     if($mapper eq "blasr"){
 	print "Mapping long-reads using blasr...\n";
-	run_exe( "${blasrDir}blasr  -nproc $nproc -m 1 -minMatch 5 -bestn 10 -noSplitSubreads -advanceExactMatches 1 -nCandidates 1 -maxAnchorsPerPosition 1 -sdpTupleSize 7 $readsFile $contigFile | cut -d ' ' -f1-12 | sed 's/ /\\t/g' > $file_pref.map 2> blasr.err");
+	run_exe( "blasr  -nproc $nproc -m 1 -minMatch 5 -bestn 10 -noSplitSubreads -advanceExactMatches 1 -nCandidates 1 -maxAnchorsPerPosition 1 -sdpTupleSize 7 $readsFile $contigFile | cut -d ' ' -f1-12 | sed 's/ /\\t/g' > $file_pref.map 2> blasr.err");
 	if($?){
 	    die "Error in the blasr mapping. Please see $outputDir/blasr.err for details.\n";
 	}
@@ -234,7 +234,7 @@ if(! -e "$file_pref.map.sort"){
     
     if($mapper eq "graphmap"){
 	print "Mapping using graphmap...\n";
-	run_exe("$graphmapDir/graphmap owler -t 20 -r $contigFile -d $readsFile -o $file_pref.map");
+	run_exe("graphmap owler -t 20 -r $contigFile -d $readsFile -o $file_pref.map");
 	print "Sorting mapping results...\n";
 	run_exe("sort -k1,1 -k6,6g  $file_pref.map > $file_pref.map.sort");
     }
@@ -242,7 +242,7 @@ if(! -e "$file_pref.map.sort"){
     if($mapper eq "minimap2"){
 	print "Mapping long-reads using minimap2...\n";
 	#
-	run_exe("$minimap2Dir/minimap2 -t $nproc -w5 -m0 --cs=short $contigFile $readsFile | cut -f1-21 > $file_pref.map 2> minimap2.err");
+	run_exe("minimap2 -t $nproc -w5 -m0 --cs=short $contigFile $readsFile | cut -f1-21 > $file_pref.map 2> minimap2.err");
 	#
 	if($?){
 	    die "Error in the minimap2 mapping. Please see $outputDir/minimap2.err for details.\n";
@@ -298,7 +298,7 @@ for (my $i = 0; $i <= 5; $i++){
 if (!$skip_opera){
 
         # run opera
-    &run_exe( "${operaDir}OPERA-LG config > log" );
+    &run_exe( "OPERA-LG config > log" );
 
     #Link to the result file
     &run_exe("ln -s results/scaffoldSeq.fasta scaffoldSeq.fasta");

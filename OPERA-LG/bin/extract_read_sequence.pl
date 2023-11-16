@@ -1,3 +1,4 @@
+#!/usr/bin/env perl
 use warnings;
 use Switch;
 use Getopt::Long;
